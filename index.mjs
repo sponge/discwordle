@@ -62,6 +62,7 @@ function createRichEmbed(game) {
       letter.status === 'unknown' ? gray :
       darkGray;
     lettersStatus += `${color[letter.letter]} `;
+    if (letter.letter === 'm') lettersStatus += '\n';
   }
   
   const embed = new MessageEmbed()
@@ -143,14 +144,15 @@ async function main() {
             reply += `\ngame over: you lost!\nthe word was: ${game.word}`;
           }
 
-          // FIXME: does this try still work if there's no await? i don't think so
-          await interaction.reply(reply);
-          // await interaction.reply({ content: reply, ephemeral: true });
-          await game.originalInteraction.editReply({embeds: [createRichEmbed(game)]});
+          await Promise.all([
+            interaction.reply(reply),
+            game.originalInteraction.editReply({embeds: [createRichEmbed(game)]}),
+          ]);
 
           if (result.status === 'game-won' || result.status === 'game-lost') {
             games.delete(interaction.channelId);
           }
+
           return;
         }
       }
