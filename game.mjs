@@ -17,8 +17,7 @@ function getErrorString(status) {
 
 function startGame(wordLength) {
   const eligible = validWords.filter(word => word.length === wordLength);
-  // const word = eligible[Math.floor(Math.random() * eligible.length)];
-  const word = 'glove';
+  const word = eligible[Math.floor(Math.random() * eligible.length)];
   const letters = {};
   'abcdefghijklmnopqrstuvwxyz'.split('').forEach(letter => letters[letter] = { letter, status: 'unknown' });
 
