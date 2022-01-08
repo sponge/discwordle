@@ -2,7 +2,7 @@ import Config from './config.mjs';
 import { Client, Intents, MessageEmbed } from 'discord.js';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
-import { green, yellow, gray } from './letters.mjs';
+import { green, yellow, gray, darkGray } from './letters.mjs';
 import { startGame, guess } from './game.mjs';
 
 const commands = [
@@ -54,10 +54,19 @@ function createRichEmbed(game) {
     }
     board += '\n';
   }
+
+  let lettersStatus = '';
+  for (const letter of Object.values(game.letters)) {
+    const color = letter.status === 'correct' ? green :
+      letter.status === 'in-word' ? yellow :
+      letter.status === 'unknown' ? gray :
+      darkGray;
+    lettersStatus += `${color[letter.letter]} `;
+  }
   
   const embed = new MessageEmbed()
     .setDescription(board)
-    .addFields({ name: 'Letters', value: printGuessLetters(Object.values(game.letters)) }); 
+    .addFields({ name: 'Letters', value: lettersStatus }); 
 
   return embed;
 }

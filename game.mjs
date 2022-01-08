@@ -10,7 +10,7 @@ function startGame(wordLength) {
   const eligible = validWords.filter(word => word.length === wordLength);
   const word = eligible[Math.floor(Math.random() * eligible.length)];
   const letters = {};
-  'abcdefghijklmnopqrstuvwxyz'.split('').forEach(letter => letters[letter] = {letter, status: 'not-in-word'});
+  'abcdefghijklmnopqrstuvwxyz'.split('').forEach(letter => letters[letter] = {letter, status: 'unknown'});
     
   return {
     word,
@@ -47,6 +47,8 @@ function guess(game, guessedWord) {
       game.letters[letterStatus.letter].status = 'correct';
     } else if (letterStatus.status === 'in-word' && game.letters[letterStatus.letter].status !== 'correct') {
       game.letters[letterStatus.letter].status = 'in-word';
+    } else {
+      game.letters[letterStatus.letter].status = 'unused';
     }
 
     const idx = tempSplit.indexOf(guessedWord[i]);
