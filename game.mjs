@@ -16,8 +16,13 @@ function getErrorString(status) {
 }
 
 function startGame(wordLength) {
+  if (!validWords.some((word) => word.length == wordLength)) {
+    wordLength = 5;
+  }
+
   const eligible = validWords.filter(word => word.length === wordLength);
   const word = eligible[Math.floor(Math.random() * eligible.length)];
+  
   const letters = {};
   'abcdefghijklmnopqrstuvwxyz'.split('').forEach(letter => letters[letter] = { letter, status: 'unknown' });
 
