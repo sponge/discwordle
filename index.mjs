@@ -87,6 +87,7 @@ async function main() {
         const wordLength = interaction.options.getInteger('length') ?? 5;
         
         if (games.has(interaction.channelId)) {
+          await interaction.reply({ content: 'there is already a game in progress in this channel.', ephemeral: true });
           return;
         }
 
@@ -98,13 +99,14 @@ async function main() {
         let reply = printGameBoard(game);
 
         await interaction.reply(reply);
+        return;
       }
 
       if (interaction.commandName === 'guess') {
         const guessedWord = interaction.options.getString('word', true);
 
         if (!games.has(interaction.channelId)) {
-          await interaction.reply('no game started!');
+          await interaction.reply({ content: 'no game started!', ephemeral: true });
           return;
         }
 
@@ -113,7 +115,7 @@ async function main() {
         console.log(game, result);
 
         if (!result.success) {
-          await interaction.reply(result.status);
+          await interaction.reply({ content: result.status, ephemeral: true });
           return;
         }
 
@@ -129,6 +131,7 @@ async function main() {
 
         // FIXME: does this try still work if there's no await? i don't think so
         await interaction.reply(reply);
+        // await interaction.reply({ content: reply, ephemeral: true });
         await game.originalInteraction.editReply(printGameBoard(game));
 
         if (result.status === 'game-won' || result.status === 'game-lost') {
