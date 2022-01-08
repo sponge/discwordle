@@ -6,6 +6,15 @@ const validWords = commonWords
   .slice(0, 20000)
   .filter((word) => dictionaryWords.has(word) && !excludedWords.has(word));
 
+const errors = {
+  'wrong-word-length': 'The word you guessed is not the correct length.',
+  'not-a-word': 'The word you guessed is not a word.',
+}
+
+function getErrorString(status) {
+  return errors[status] ?? `An unknown error occurred. (${status})`;
+}
+
 function startGame(wordLength) {
   const eligible = validWords.filter(word => word.length === wordLength);
   const word = eligible[Math.floor(Math.random() * eligible.length)];
@@ -18,6 +27,7 @@ function startGame(wordLength) {
     guesses: [],
     maxGuesses: 6,
     letters,
+    status: 'game-started',
   }
 }
 
@@ -60,12 +70,15 @@ function guess(game, guessedWord) {
   game.guesses.push(guess);
 
   if (game.word == guessedWord) {
+    game.status = 'game-won';
     return { success: true, status: 'game-won', guess }
   } else if (game.guesses.length >= game.maxGuesses) {
+    game.status = 'game-lost';
     return { success: true, status: 'game-lost', guess }
   } else {
+    game.status = 'guess-made';
     return { success: true, status: 'guess-made', guess }
   }
 }
 
-export { startGame, guess }
+export { startGame, guess, getErrorString }

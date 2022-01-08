@@ -3,7 +3,7 @@ import { Client, Intents, MessageEmbed } from 'discord.js';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
 import { green, yellow, gray, darkGray } from './letters.mjs';
-import { startGame, guess } from './game.mjs';
+import { startGame, guess, getErrorString } from './game.mjs';
 
 const commands = [
   {
@@ -67,7 +67,14 @@ function createRichEmbed(game) {
   
   const embed = new MessageEmbed()
     .setDescription(board)
-    .addFields({ name: 'Letters', value: lettersStatus }); 
+    .addFields({ name: 'Letters', value: lettersStatus });
+  
+  if (game.status === 'game-won') {
+    embed.setTitle('You win!');
+  } else if (game.status === 'game-lost') {
+    embed.setTitle('You lose!');
+    embed.addFields({ name: 'The word was', value: game.word });
+  }
 
   return embed;
 }
@@ -130,18 +137,18 @@ async function main() {
           console.log(game, result);
 
           if (!result.success) {
-            await interaction.reply({ content: result.status, ephemeral: true });
+            await interaction.reply({ content: getErrorString(result.status), ephemeral: true });
             return;
           }
 
           let reply = `${game.guesses.length}/${game.maxGuesses}: ${printGuessLetters(result.guess.letters)}`;
 
           if (result.status == 'game-won') {
-            reply += '\ngame over: you win!';
+            reply += '\n**Game Over:** You win!';
           }
 
           if (result.status == 'game-lost') {
-            reply += `\ngame over: you lost!\nthe word was: ${game.word}`;
+            reply += `\n**Game Over:** you lost!\nThe word was: **${game.word}**`;
           }
 
           await Promise.all([
@@ -158,12 +165,13 @@ async function main() {
       }
     } catch (error) {
       console.error(error);
+      console.trace();
       games.delete(interaction.channelId);
-      // FIXME: better double exception handling!!!
       try {
-        await interaction.reply("something went wrong!");
+        await interaction.guild.channels.fetch();
+        client.channels.cache.get(interaction.channelId).send(`Caught an exception, game over: ${error.message}`);
       } catch (error) {
-
+        console.error(error);
       }
     }
   });
