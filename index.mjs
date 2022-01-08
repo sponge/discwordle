@@ -165,7 +165,7 @@ async function main() {
       }
     } catch (error) {
       console.error(error);
-      console.trace();
+      console.error(error.stack);
       games.delete(interaction.channelId);
       try {
         await interaction.guild.channels.fetch();

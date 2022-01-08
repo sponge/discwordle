@@ -17,7 +17,8 @@ function getErrorString(status) {
 
 function startGame(wordLength) {
   const eligible = validWords.filter(word => word.length === wordLength);
-  const word = eligible[Math.floor(Math.random() * eligible.length)];
+  // const word = eligible[Math.floor(Math.random() * eligible.length)];
+  const word = 'glove';
   const letters = {};
   'abcdefghijklmnopqrstuvwxyz'.split('').forEach(letter => letters[letter] = { letter, status: 'unknown' });
 
@@ -45,30 +46,48 @@ function guess(game, guessedWord) {
     letters: []
   };
 
-  const tempSplit = [...game.splitWord];
+  // FIXME: this sucks, probably dont need old for loops anymore
+  const remainingLetters = [...game.splitWord];
+  // first pass: correct letters only
+  // (ex. word is "glove" but you guess "geode", the first e needs to be gray)
   for (let i = 0; i < game.word.length; i++) {
+    const correct = guessedWord[i] == game.splitWord[i];
     const letterStatus = {
       letter: guessedWord[i],
-      status: guessedWord[i] == game.splitWord[i] ? 'correct' : tempSplit.includes(guessedWord[i]) ? 'in-word' : 'not-in-word'
+      status: correct ? 'correct' : 'unused'
     }
+
+    if (correct) remainingLetters.splice(remainingLetters.indexOf(guessedWord[i]), 1);
     guess.letters.push(letterStatus);
+  }
 
-    if (letterStatus.status === 'correct') {
-      game.letters[letterStatus.letter].status = 'correct';
-    } else if (letterStatus.status === 'in-word' && game.letters[letterStatus.letter].status !== 'correct') {
-      game.letters[letterStatus.letter].status = 'in-word';
-    } else {
-      game.letters[letterStatus.letter].status = 'unused';
+  // second pass: correct letters in the wrong position
+  for (let i = 0; i < guess.letters.length; i++) {
+    if (guess.letters[i].status === 'correct') continue;
+    const status = remainingLetters.includes(guessedWord[i]) ? 'in-word' : 'unused';
+    guess.letters[i].status = status;
+    if (status === 'in-word') {
+      remainingLetters.splice(remainingLetters.indexOf(guessedWord[i]), 1);
     }
+  }
 
-    const idx = tempSplit.indexOf(guessedWord[i]);
-    if (idx != -1) {
-      tempSplit.splice(idx, 1);
+  // update the global letters status now, not allowing any status to get downgraded
+  // (this can probably be improved with enums and Math.max())
+  for (let i = 0; i < guess.letters.length; i++) {
+    const guessLetter = guess.letters[i];
+    const gameLetter = game.letters[guessLetter.letter];
+    if (guessLetter.status === 'correct') {
+      gameLetter.status = 'correct';
+    } else if (guessLetter.status === 'in-word' && gameLetter.status !== 'correct') {
+      gameLetter.status = 'in-word';
+    } else if (guessLetter.status === 'unused' && gameLetter.status !== 'correct' && gameLetter.status !== 'in-word') {
+      gameLetter.status = 'unused';
     }
   }
 
   game.guesses.push(guess);
 
+  // update the game object with the status, too, and return the guess
   if (game.word == guessedWord) {
     game.status = 'game-won';
     return { success: true, status: 'game-won', guess }
