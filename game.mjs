@@ -9,12 +9,15 @@ const validWords = commonWords
 function startGame(wordLength) {
   const eligible = validWords.filter(word => word.length === wordLength);
   const word = eligible[Math.floor(Math.random() * eligible.length)];
-
+  const letters = {};
+  'abcdefghijklmnopqrstuvwxyz'.split('').forEach(letter => letters[letter] = {letter, status: 'not-in-word'});
+    
   return {
     word,
     splitWord: word.split(''),
     guesses: [],
     maxGuesses: 6,
+    letters,
   }
 }
 
@@ -34,10 +37,17 @@ function guess(game, guessedWord) {
 
   const tempSplit = [...game.splitWord];
   for (let i = 0; i < game.word.length; i++) {
-    guess.letters.push({
-      letter: guessedWord[i],
-      status: guessedWord[i] == game.splitWord[i] ? 'correct' : tempSplit.includes(guessedWord[i]) ? 'in-word' : 'not-in-word'
-    });
+    const letterStatus = {
+    letter: guessedWord[i],
+    status: guessedWord[i] == game.splitWord[i] ? 'correct' : tempSplit.includes(guessedWord[i]) ? 'in-word' : 'not-in-word'
+  }
+    guess.letters.push(letterStatus);
+
+    if (letterStatus.status === 'correct') {
+      game.letters[letterStatus.letter].status = 'correct';
+    } else if (letterStatus.status === 'in-word' && game.letters[letterStatus.letter].status !== 'correct') {
+      game.letters[letterStatus.letter].status = 'in-word';
+    }
 
     const idx = tempSplit.indexOf(guessedWord[i]);
     if (idx != -1) {

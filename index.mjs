@@ -1,5 +1,5 @@
 import Config from './config.mjs';
-import { Client, Intents } from 'discord.js';
+import { Client, Intents, MessageEmbed } from 'discord.js';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
 import { green, yellow, gray } from './letters.mjs';
@@ -41,7 +41,7 @@ function printGuessLetters(letters) {
   return str;
 }
 
-function printGameBoard(game) {
+function createRichEmbed(game) {
   let board = '';
 
   for (const guess of game.guesses) {
@@ -54,8 +54,12 @@ function printGameBoard(game) {
     }
     board += '\n';
   }
+  
+  const embed = new MessageEmbed()
+    .setDescription(board)
+    .addFields({ name: 'Letters', value: printGuessLetters(Object.values(game.letters)) }); 
 
-  return board;
+  return embed;
 }
 
 async function main() {
@@ -83,61 +87,63 @@ async function main() {
     try {
       if (!interaction.isCommand()) return;
 
-      if (interaction.commandName === 'discwordle') {
-        const wordLength = interaction.options.getInteger('length') ?? 5;
-        
-        if (games.has(interaction.channelId)) {
-          await interaction.reply({ content: 'there is already a game in progress in this channel.', ephemeral: true });
+      switch (interaction.commandName) {
+        case 'discwordle': {
+          const wordLength = interaction.options.getInteger('length') ?? 5;
+          
+          if (games.has(interaction.channelId)) {
+            const game = games.get(interaction.channelId);
+            game.originalInteraction = interaction;
+            await interaction.reply({embeds: [createRichEmbed(game)]});
+            return;
+          }
+
+          const game = startGame(wordLength);
+          game.originalInteraction = interaction;
+          games.set(interaction.channelId, game);
+          console.log(game);
+
+          await interaction.reply({embeds: [createRichEmbed(game)]});
           return;
         }
 
-        const game = startGame(wordLength);
-        game.originalInteraction = interaction;
-        games.set(interaction.channelId, game);
-        console.log(game);
+        case 'guess': {
+          const guessedWord = interaction.options.getString('word', true);
 
-        let reply = printGameBoard(game);
+          if (!games.has(interaction.channelId)) {
+            await interaction.reply({ content: 'no game started!', ephemeral: true });
+            return;
+          }
 
-        await interaction.reply(reply);
-        return;
-      }
+          const game = games.get(interaction.channelId);
+          const result = guess(game, guessedWord);
+          console.log(game, result);
 
-      if (interaction.commandName === 'guess') {
-        const guessedWord = interaction.options.getString('word', true);
+          if (!result.success) {
+            await interaction.reply({ content: result.status, ephemeral: true });
+            return;
+          }
 
-        if (!games.has(interaction.channelId)) {
-          await interaction.reply({ content: 'no game started!', ephemeral: true });
+          let reply = `${game.guesses.length}/${game.maxGuesses}: ${printGuessLetters(result.guess.letters)}`;
+
+          if (result.status == 'game-won') {
+            reply += '\ngame over: you win!';
+          }
+
+          if (result.status == 'game-lost') {
+            reply += `\ngame over: you lost!\nthe word was: ${game.word}`;
+          }
+
+          // FIXME: does this try still work if there's no await? i don't think so
+          await interaction.reply(reply);
+          // await interaction.reply({ content: reply, ephemeral: true });
+          await game.originalInteraction.editReply({embeds: [createRichEmbed(game)]});
+
+          if (result.status === 'game-won' || result.status === 'game-lost') {
+            games.delete(interaction.channelId);
+          }
           return;
         }
-
-        const game = games.get(interaction.channelId);
-        const result = guess(game, guessedWord);
-        console.log(game, result);
-
-        if (!result.success) {
-          await interaction.reply({ content: result.status, ephemeral: true });
-          return;
-        }
-
-        let reply = `${game.guesses.length}/${game.maxGuesses}: ${printGuessLetters(result.guess.letters)}`;
-
-        if (result.status == 'game-won') {
-          reply += '\ngame over: you win!';
-        }
-
-        if (result.status == 'game-lost') {
-          reply += `\ngame over: you lost!\nthe word was: ${game.word}`;
-        }
-
-        // FIXME: does this try still work if there's no await? i don't think so
-        await interaction.reply(reply);
-        // await interaction.reply({ content: reply, ephemeral: true });
-        await game.originalInteraction.editReply(printGameBoard(game));
-
-        if (result.status === 'game-won' || result.status === 'game-lost') {
-          games.delete(interaction.channelId);
-        }
-
       }
     } catch (error) {
       console.error(error);
