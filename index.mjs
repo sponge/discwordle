@@ -59,16 +59,16 @@ function createRichEmbed(game) {
   for (const letter of Object.values(game.letters)) {
     const color = letter.status === 'correct' ? green :
       letter.status === 'in-word' ? yellow :
-      letter.status === 'unknown' ? gray :
-      darkGray;
+        letter.status === 'unknown' ? gray :
+          darkGray;
     lettersStatus += `${color[letter.letter]} `;
     if (letter.letter === 'm') lettersStatus += '\n';
   }
-  
+
   const embed = new MessageEmbed()
     .setDescription(board)
     .addFields({ name: 'Letters', value: lettersStatus });
-  
+
   if (game.status === 'game-won') {
     embed.setTitle('You win!');
   } else if (game.status === 'game-lost') {
@@ -94,7 +94,7 @@ async function main() {
   //   console.error(error);
   // }
 
-  const client = new Client({intents: [Intents.FLAGS.GUILD_MESSAGES]});
+  const client = new Client({ intents: [Intents.FLAGS.GUILD_MESSAGES] });
 
   client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
@@ -107,11 +107,11 @@ async function main() {
       switch (interaction.commandName) {
         case 'discwordle': {
           const wordLength = interaction.options.getInteger('length') ?? 5;
-          
+
           if (games.has(interaction.channelId)) {
             const game = games.get(interaction.channelId);
             game.originalInteraction = interaction;
-            await interaction.reply({embeds: [createRichEmbed(game)]});
+            await interaction.reply({ embeds: [createRichEmbed(game)] });
             return;
           }
 
@@ -120,7 +120,7 @@ async function main() {
           games.set(interaction.channelId, game);
           console.log(game);
 
-          await interaction.reply({embeds: [createRichEmbed(game)]});
+          await interaction.reply({ embeds: [createRichEmbed(game)] });
           return;
         }
 
@@ -153,7 +153,7 @@ async function main() {
 
           await Promise.all([
             interaction.reply(reply),
-            game.originalInteraction.editReply({embeds: [createRichEmbed(game)]}),
+            game.originalInteraction.editReply({ embeds: [createRichEmbed(game)] }),
           ]);
 
           if (result.status === 'game-won' || result.status === 'game-lost') {

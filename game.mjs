@@ -19,8 +19,8 @@ function startGame(wordLength) {
   const eligible = validWords.filter(word => word.length === wordLength);
   const word = eligible[Math.floor(Math.random() * eligible.length)];
   const letters = {};
-  'abcdefghijklmnopqrstuvwxyz'.split('').forEach(letter => letters[letter] = {letter, status: 'unknown'});
-    
+  'abcdefghijklmnopqrstuvwxyz'.split('').forEach(letter => letters[letter] = { letter, status: 'unknown' });
+
   return {
     word,
     splitWord: word.split(''),
@@ -33,11 +33,11 @@ function startGame(wordLength) {
 
 function guess(game, guessedWord) {
   if (guessedWord.length != game.word.length) {
-    return { success: false, status: 'wrong-word-length'};
+    return { success: false, status: 'wrong-word-length' };
   }
 
   if (!dictionaryWords.has(guessedWord)) {
-    return { success: false, status: 'not-a-word'};
+    return { success: false, status: 'not-a-word' };
   }
 
   const guess = {
@@ -48,9 +48,9 @@ function guess(game, guessedWord) {
   const tempSplit = [...game.splitWord];
   for (let i = 0; i < game.word.length; i++) {
     const letterStatus = {
-    letter: guessedWord[i],
-    status: guessedWord[i] == game.splitWord[i] ? 'correct' : tempSplit.includes(guessedWord[i]) ? 'in-word' : 'not-in-word'
-  }
+      letter: guessedWord[i],
+      status: guessedWord[i] == game.splitWord[i] ? 'correct' : tempSplit.includes(guessedWord[i]) ? 'in-word' : 'not-in-word'
+    }
     guess.letters.push(letterStatus);
 
     if (letterStatus.status === 'correct') {
