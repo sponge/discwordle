@@ -7,6 +7,8 @@ Play Wordle with your friends on your Discord server
 ## About
 Discwordle is a simple bot that plays as many games of [Wordle](https://www.powerlanguage.co.uk/wordle/) as your heart desires. Currently, all players cooperate on the same board, with everyone getting the maximum six guesses.
 
+![Screenshot](screenshot.png)
+
 ## Commands
 
 `/discwordle (wordLength)` - starts a game of Discwordle, optionally specifying how long the word should be. Defaults to the classic 5 length. Issue this command at anytime to send a new message with the board, useful if the original has scrolled way out of view.
