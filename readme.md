@@ -1,3 +1,5 @@
+![Logo](logo-sm.png)
+
 # Discwordle
 Play Wordle with your friends on your Discord server
 
