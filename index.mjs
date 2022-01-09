@@ -153,7 +153,7 @@ async function main() {
           game.originalInteraction = interaction;
           games.set(interaction.channelId, game);
 
-          console.log(`Started game: guild:${interaction.guildId} channel:${interaction.channelId} word:${game.word}`);
+          console.log(`Started game: guild:${interaction.guildId} channel:${interaction.channelId} member:${interaction.member} word:${game.word}`);
           if (Config.verbose) console.log(game);
 
           await interaction.reply({ embeds: [createRichEmbed(game)] });
@@ -188,12 +188,12 @@ async function main() {
 
           if (result.status == 'game-won') {
             reply += '\n**Game Over:** You win!';
-            console.log(`Game won: guild:${interaction.guildId} channel:${interaction.channelId} word:${game.word}`);
+            console.log(`Game won: guild:${interaction.guildId} channel:${interaction.channelId} member:${interaction.member} word:${game.word}`);
           } else if (result.status == 'game-lost') {
             reply += `\n**Game Over:** you lost!\nThe word was: **${game.word}**`;
-            console.log(`Game lost: guild:${interaction.guildId} channel:${interaction.channelId} word:${game.word}`);
+            console.log(`Game lost: guild:${interaction.guildId} channel:${interaction.channelId} member:${interaction.member} word:${game.word}`);
           } else if (result.status == 'guess-made') {
-            console.log(`Guess made: guild:${interaction.guildId} channel:${interaction.channelId} word:${game.word} guess:${result.guess.word}`);
+            console.log(`Guess made: guild:${interaction.guildId} channel:${interaction.channelId} member:${interaction.member} word:${game.word} guess:${result.guess.word}`);
           }
 
           // update both at once, no need to wait for one or the other to finish
